@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: ICUReceiver
+
+  datasource:
+    url: jdbc:h2:mem:testicu
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      icuService:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+
+  retry:
+    instances:
+      icuService:
+        max-attempts: 3
+        wait-duration: 500ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2.0
+
+logging:
+  level:
+    root: INFO
+    com.example.ICUReceiver: DEBUG
+    org.springframework.web: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus, loggers
+  endpoint:
+    health:
+      enabled: true
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ICUReceiver
+  health:
+    db:
+      enabled: true
+    diskspace:
+      enabled: true
+server:
+  port: 8080
